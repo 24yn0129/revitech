@@ -17,7 +17,26 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    public Long getId() {
+    @Column(nullable = false, unique = true)  // ユーザー名として name をユニークに
+    private String name;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    private String status;
+
+    private String role;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+	public Long getId() {
 		return id;
 	}
 
@@ -81,24 +100,8 @@ public class Users {
 		this.updatedAt = updatedAt;
 	}
 
-	@Column(nullable = false)
-    private String name;
+    // username フィールドは削除しました
+    
+    
 
-    @Column(nullable = false)
-    private String email;
-
-    @Column(nullable = false)
-    private String password;
-
-    private String status;
-
-    private String role;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-	
 }

@@ -1,6 +1,7 @@
 package com.example.revitech.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -29,13 +30,18 @@ public class HomeController {
     }
 
     // DM画面表示。receiverIdをクエリパラメータで受け取る想定
-    @GetMapping("/dm/chat")
+    @GetMapping("/dm")
     public String dmView(@RequestParam(name = "receiverId", required = false) Long receiverId, Model model) {
 
         // ログインユーザー取得
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        Users sender = usersRepository.findByEmail(email);
+        Optional<Users> optionalSender = usersRepository.findByEmail(email);
+        if (optionalSender.isEmpty()) {
+            // ユーザーが見つからなければログイン画面にリダイレクトなど適宜対応
+            return "redirect:/login?error";
+        }
+        Users sender = optionalSender.get();
 
         // 受信者ユーザーも取得して名前表示用にセット（存在チェックも）
         Users receiver = null;
@@ -62,7 +68,12 @@ public class HomeController {
         // ログインユーザー取得
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        Users sender = usersRepository.findByEmail(email);
+        Optional<Users> optionalSender = usersRepository.findByEmail(email);
+        if (optionalSender.isEmpty()) {
+            // ユーザーが見つからなければログイン画面にリダイレクトなど適宜対応
+            return "redirect:/login?error";
+        }
+        Users sender = optionalSender.get();
 
         // 新規メッセージ保存
         ChatMessage message = new ChatMessage();

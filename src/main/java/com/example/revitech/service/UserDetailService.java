@@ -7,28 +7,29 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.example.revitech.entity.Teacher;
-import com.example.revitech.repository.TeacherRepository;
+import com.example.revitech.entity.Users;
+import com.example.revitech.repository.UsersRepository;
 
 @Service
-public class TeacherDetailsService implements UserDetailsService {
+public class UserDetailService implements UserDetailsService {
 
-    private final TeacherRepository teacherRepository;
+    private final UsersRepository teacherRepository;
 
     @Autowired
-    public TeacherDetailsService(TeacherRepository teacherRepository) {
+    public UserDetailService(UsersRepository teacherRepository) {
         this.teacherRepository = teacherRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Teacher teacher = teacherRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("ユーザーが存在しません: " + username));
+    	Users user = teacherRepository.findByName(username)
+    		    .orElseThrow(() -> new UsernameNotFoundException("ユーザーが存在しません: " + username));
+
 
         return User.builder()
-                .username(teacher.getUsername())
-                .password(teacher.getPassword())
-                .roles(teacher.getRole()) // 例: USER
+                .username(user.getName())
+                .password(user.getPassword())
+                .roles(user.getRole()) // 例: USER
                 .build();
     }
 }

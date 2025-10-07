@@ -9,19 +9,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.example.revitech.entity.Teacher;
+import com.example.revitech.entity.Users;
 import com.example.revitech.form.SignupForm;
-import com.example.revitech.service.TeacherService;
+import com.example.revitech.service.UserService;
 
 import jakarta.validation.Valid;
 
 @Controller
 public class LoginController {
 
-    private final TeacherService teacherService;
+    private final UserService teacherService;
 
     @Autowired
-    public LoginController(TeacherService teacherService) {
+    public LoginController(UserService teacherService) {
         this.teacherService = teacherService;
     }
 
@@ -53,8 +53,8 @@ public class LoginController {
             return "signup";
         }
 
-        Teacher teacher = new Teacher();
-        teacher.setUsername(form.getUsername());
+        Users teacher = new Users();
+        teacher.setName(form.getUsername());
         teacher.setPassword(form.getPassword());
         teacher.setStatus("active");
         teacher.setRole("USER");
