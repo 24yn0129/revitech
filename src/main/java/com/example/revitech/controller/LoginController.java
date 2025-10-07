@@ -1,7 +1,5 @@
-// LoginController.java
 package com.example.revitech.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -9,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.example.revitech.entity.Users;
 import com.example.revitech.form.SignupForm;
 import com.example.revitech.service.UserService;
 
@@ -18,11 +15,10 @@ import jakarta.validation.Valid;
 @Controller
 public class LoginController {
 
-    private final UserService teacherService;
+    private final UserService userService;
 
-    @Autowired
-    public LoginController(UserService teacherService) {
-        this.teacherService = teacherService;
+    public LoginController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping("/login")
@@ -44,23 +40,17 @@ public class LoginController {
         if (!form.getPassword().equals(form.getPasswordConfirm())) {
             bindingResult.rejectValue("passwordConfirm", null, "パスワードが一致しません");
         }
-
-        if (teacherService.isUsernameTaken(form.getUsername())) {
+        if (userService.isUsernameTaken(form.getUsername())) {
             bindingResult.rejectValue("username", null, "このユーザー名はすでに使われています");
         }
-
+        if (userService.isEmailTaken(form.getEmail())) {
+            bindingResult.rejectValue("email", null, "このメールはすでに使われています");
+        }
         if (bindingResult.hasErrors()) {
             return "signup";
         }
 
-        Users teacher = new Users();
-        teacher.setName(form.getUsername());
-        teacher.setPassword(form.getPassword());
-        teacher.setStatus("active");
-        teacher.setRole("USER");
-
-        teacherService.save(teacher);
-
-        return "redirect:/home";
+        userService.registerUser(form);
+        return "redirect:/login";
     }
 }

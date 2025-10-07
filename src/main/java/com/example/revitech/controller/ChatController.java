@@ -1,5 +1,3 @@
-// src/main/java/com/example/revitech/controller/ChatController.java
-
 package com.example.revitech.controller;
 
 import java.util.List;
@@ -12,7 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.revitech.entity.ChatGroup;
 import com.example.revitech.entity.ChatMessage;
+import com.example.revitech.entity.Users;
+import com.example.revitech.repository.ChatGroupRepository;
 import com.example.revitech.repository.ChatMessageRepository;
 import com.example.revitech.repository.UsersRepository;
 
@@ -26,28 +27,34 @@ public class ChatController {
     @Autowired
     private UsersRepository usersRepository;
 
-    // メッセージ送信（テスト用：受信者ID、送信者ID、内容を指定）
+    @Autowired
+    private ChatGroupRepository chatGroupRepository;
+
     @PostMapping("/send")
-    public ResponseEntity<?> sendMessage(@RequestParam Long senderId,
-                                         @RequestParam Long receiverId,
+    public ResponseEntity<?> sendMessage(@RequestParam Long groupId,
+                                         @RequestParam Long senderId,
                                          @RequestParam String content) {
-        // 送信者・受信者が存在するかチェック（簡易）
-        if (!usersRepository.existsById(senderId) || !usersRepository.existsById(receiverId)) {
-            return ResponseEntity.badRequest().body("Sender or receiver not found");
+
+        ChatGroup chatGroup = chatGroupRepository.findById(groupId).orElse(null);
+        Users senderUser = usersRepository.findById(senderId).orElse(null);
+
+        if (chatGroup == null || senderUser == null) {
+            return ResponseEntity.badRequest().body("Group or sender not found");
         }
 
-        ChatMessage message = new ChatMessage(content, receiverId, senderId);
+        ChatMessage message = new ChatMessage(chatGroup, senderUser, content);
         chatMessageRepository.save(message);
+
         return ResponseEntity.ok("Message sent");
     }
 
-    // 指定ユーザーの受信メッセージ一覧取得
     @GetMapping("/inbox")
-    public ResponseEntity<List<ChatMessage>> getInbox(@RequestParam Long userId) {
-        if (!usersRepository.existsById(userId)) {
+    public ResponseEntity<List<ChatMessage>> getInbox(@RequestParam Long groupId) {
+        ChatGroup chatGroup = chatGroupRepository.findById(groupId).orElse(null);
+        if (chatGroup == null) {
             return ResponseEntity.badRequest().build();
         }
-        List<ChatMessage> messages = chatMessageRepository.findByReceiverStudentId(userId);
+        List<ChatMessage> messages = chatMessageRepository.findByGroupOrderByIdAsc(chatGroup);
         return ResponseEntity.ok(messages);
     }
 }

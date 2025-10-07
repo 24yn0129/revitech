@@ -1,57 +1,40 @@
 package com.example.revitech.entity;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "chat_room")
+@Table(name = "chat_rooms")  // ここを chat_rooms に変更
 public class ChatGroup {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String groupName;
+    @Column(nullable = false)
+    private String name;
 
-    @ManyToMany
-    @JoinTable(
-        name = "group_members",
-        joinColumns = @JoinColumn(name = "group_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<Users> members;
+    @Column(name = "type", nullable = false)
+    private String type;
 
-	public Long getId() {
-		return id;
-	}
+    @Column(name = "creatar_user_id", nullable = false)
+    private Long creatarUserId;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-	public String getGroupName() {
-		return groupName;
-	}
-
-	public void setGroupName(String groupName) {
-		this.groupName = groupName;
-	}
-
-	public List<Users> getMembers() {
-		return members;
-	}
-
-	public void setMembers(List<Users> members) {
-		this.members = members;
-	}
-
-    
+    // getter / setter
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+    public Long getCreatarUserId() { return creatarUserId; }
+    public void setCreatarUserId(Long creatarUserId) { this.creatarUserId = creatarUserId; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 }

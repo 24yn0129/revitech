@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>チャット</title>
+    <link rel="stylesheet" href="/css/chat.css">
+</head>
+<body>
+    <h1>チャット</h1>
+
+    <!-- ユーザーリスト -->
+    <div id="users">
+        <h2>ユーザー一覧</h2>
+        <ul>
+            <li th:each="user : ${users}">
+                <a th:href="@{/chat/{id}(id=${user.id})}" th:text="${user.name}"></a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- チャットエリア -->
+    <div id="chat-area">
+        <div id="messages">
+            <div th:each="msg : ${messages}">
+                <strong th:text="${msg.sender.name} + ':'"></strong>
+                <span th:text="${msg.content}"></span>
+                <small th:text="${#dates.format(msg.createdAt, 'HH:mm')}"></small>
+            </div>
+        </div>
+
+        <!-- メッセージ送信フォーム -->
+        <form th:action="@{/chat/send}" method="post">
+            <input type="hidden" name="receiverId" th:value="${receiver.id}">
+            <input type="text" name="content" placeholder="メッセージを入力">
+            <button type="submit">送信</button>
+        </form>
+    </div>
+</body>
+</html>
