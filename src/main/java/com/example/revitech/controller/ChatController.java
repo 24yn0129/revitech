@@ -30,6 +30,7 @@ public class ChatController {
     @Autowired
     private ChatGroupRepository chatGroupRepository;
 
+    // メッセージ送信
     @PostMapping("/send")
     public ResponseEntity<?> sendMessage(@RequestParam Long groupId,
                                          @RequestParam Long senderId,
@@ -42,19 +43,26 @@ public class ChatController {
             return ResponseEntity.badRequest().body("Group or sender not found");
         }
 
-        ChatMessage message = new ChatMessage(chatGroup, senderUser, content);
+        ChatMessage message = new ChatMessage();
+        message.setGroup(chatGroup);
+        message.setSender(senderUser);
+        message.setBody(content);
+
         chatMessageRepository.save(message);
 
         return ResponseEntity.ok("Message sent");
     }
 
+    // 指定グループの受信箱取得
     @GetMapping("/inbox")
     public ResponseEntity<List<ChatMessage>> getInbox(@RequestParam Long groupId) {
         ChatGroup chatGroup = chatGroupRepository.findById(groupId).orElse(null);
         if (chatGroup == null) {
             return ResponseEntity.badRequest().build();
         }
-        List<ChatMessage> messages = chatMessageRepository.findByGroupOrderByIdAsc(chatGroup);
+
+        // @Query 版を使用
+        List<ChatMessage> messages = chatMessageRepository.findMessagesByGroup(chatGroup.getId());
         return ResponseEntity.ok(messages);
     }
 }

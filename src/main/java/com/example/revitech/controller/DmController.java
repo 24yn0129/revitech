@@ -28,75 +28,60 @@ public class DmController {
     @Autowired
     private UsersRepository usersRepository;
 
-    // DMページ表示
+    // DM画面表示
     @GetMapping("/dm")
-    public String showDmPage(@RequestParam(value = "receiverId", required = false) Long receiverId,
-                             Model model) {
-
-        Long currentUserId = 1L; // 仮ログインユーザー
+    public String showDmPage(Model model) {
+        // とりあえず固定ユーザー
+        Long currentUserId = 3L; 
         Users currentUser = usersRepository.findById(currentUserId).orElse(null);
 
-        Users partnerUser = null;
+        // 固定の相手ユーザー
+        Long partnerUserId = 2L;
+        Users partnerUser = usersRepository.findById(partnerUserId).orElse(null);
+
+        // DM用グループ作成または取得
         ChatGroup group = null;
-
-        if (receiverId != null) {
-            partnerUser = usersRepository.findById(receiverId).orElse(null);
-
-            if (currentUser != null && partnerUser != null) {
-                String groupName = "DM:" + currentUser.getId() + "_" + partnerUser.getId();
-                group = chatGroupRepository.findByName(groupName)
-                        .orElseGet(() -> {
-                            ChatGroup g = new ChatGroup();
-                            g.setName(groupName);
-                            return chatGroupRepository.save(g);
-                        });
-            }
-        }
-
-        List<ChatMessage> messages;
         if (currentUser != null && partnerUser != null) {
-            messages = chatMessageRepository.findChatBetweenUsers(currentUserId, partnerUser.getId());
-        } else {
-            messages = List.of();
+            String groupName = "DM:" + currentUser.getId() + "_" + partnerUser.getId();
+            group = chatGroupRepository.findByName(groupName)
+                    .orElseGet(() -> {
+                        ChatGroup g = new ChatGroup();
+                        g.setName(groupName);
+                        g.setType("DM");
+                        g.setCreatarUserId(currentUser.getId());
+                        return chatGroupRepository.save(g);
+                    });
         }
 
-        model.addAttribute("messages", messages);
+        // メッセージ取得
+        List<ChatMessage> messages = (group != null)
+                ? chatMessageRepository.findMessagesByGroup(group.getId())
+                : List.of();
+
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("partnerUser", partnerUser);
         model.addAttribute("group", group);
+        model.addAttribute("messages", messages);
 
         return "dm";
     }
 
-    // メッセージ送信
+    // DM送信
     @PostMapping("/dm/send")
-    public String sendMessage(@RequestParam("receiverId") Long receiverId,
+    public String sendMessage(@RequestParam("groupId") Long groupId,
+                              @RequestParam("senderId") Long senderId,
                               @RequestParam("content") String content) {
 
-        Long currentUserId = 1L; // 仮ログインユーザー
-        Users sender = usersRepository.findById(currentUserId).orElse(null);
-        Users receiver = usersRepository.findById(receiverId).orElse(null);
+        ChatGroup group = chatGroupRepository.findById(groupId).orElse(null);
+        Users sender = usersRepository.findById(senderId).orElse(null);
 
-        if (sender == null || receiver == null) {
+        if (group == null || sender == null) {
             return "redirect:/dm";
         }
 
-        // 既存 DM グループを取得 or 作成
-        String groupName = "DM:" + sender.getId() + "_" + receiver.getId();
-        ChatGroup group = chatGroupRepository.findByName(groupName)
-                .orElseGet(() -> {
-                    ChatGroup g = new ChatGroup();
-                    g.setName(groupName);
-                    return chatGroupRepository.save(g);
-                });
-
-        ChatMessage message = new ChatMessage();
-        message.setGroup(group);
-        message.setSender(sender);
-        message.setBody(content);
-
+        ChatMessage message = new ChatMessage(group, sender, content);
         chatMessageRepository.save(message);
 
-        return "redirect:/dm?receiverId=" + receiverId;
+        return "redirect:/dm"; // 常にこの固定DM画面に戻る
     }
 }
